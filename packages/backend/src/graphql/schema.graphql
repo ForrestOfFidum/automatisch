@@ -35,7 +35,10 @@ type Query {
   ): [SubstepArgument]
   getCurrentUser: User
   getUsageData: GetUsageData
-  getPaymentPortalUrl: GetPaymentPortalUrl
+  getPaymentPlans: [PaymentPlan]
+  getPaddleInfo: GetPaddleInfo
+  getBillingAndUsage: GetBillingAndUsage
+  getInvoices: [Invoice]
   getAutomatischInfo: GetAutomatischInfo
   healthcheck: AppHealth
 }
@@ -106,6 +109,8 @@ type SubstepArgument {
   source: SubstepArgumentSource
   additionalFields: SubstepArgumentAdditionalFields
   dependsOn: [String]
+  fields: [SubstepArgument]
+  value: JSONObject
 }
 
 type SubstepArgumentOption {
@@ -346,6 +351,7 @@ input CreateUserInput {
 input UpdateUserInput {
   email: String
   password: String
+  fullName: String
 }
 
 input ForgotPasswordInput {
@@ -469,6 +475,43 @@ type GetAutomatischInfo {
   isCloud: Boolean
 }
 
+type GetBillingAndUsage {
+  subscription: Subscription
+  usage: Usage
+}
+
+type MonthlyQuota {
+  title: String
+  action: BillingCardAction
+}
+
+type NextBillAmount {
+  title: String
+  action: BillingCardAction
+}
+
+type NextBillDate {
+  title: String
+  action: BillingCardAction
+}
+
+type BillingCardAction {
+  type: String
+  text: String
+  src: String
+}
+
+type Subscription {
+  status: String
+  monthlyQuota: MonthlyQuota
+  nextBillAmount: NextBillAmount
+  nextBillDate: NextBillDate
+}
+
+type Usage {
+  task: Int
+}
+
 type GetUsageData {
   name: String
   allowedTaskCount: Int
@@ -477,8 +520,24 @@ type GetUsageData {
   nextResetAt: String
 }
 
-type GetPaymentPortalUrl {
-  url: String
+type GetPaddleInfo {
+  sandbox: Boolean
+  vendorId: Int
+}
+
+type Invoice {
+  id: Int
+  amount: Float
+  currency: String
+  payout_date: String
+  receipt_url: String
+}
+
+type PaymentPlan {
+  name: String
+  limit: String
+  price: String
+  productId: String
 }
 
 schema {

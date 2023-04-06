@@ -1,57 +1,207 @@
 import * as React from 'react';
-import { DateTime } from 'luxon';
+import { Link } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
+import { TBillingCardAction } from '@automatisch/types';
+import * as URLS from 'config/urls';
+import useBillingAndUsageData from 'hooks/useBillingAndUsageData.ee';
+import useFormatMessage from 'hooks/useFormatMessage';
 
-import useUsageData from 'hooks/useUsageData.ee';
+const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1, str.length);
+
+type BillingCardProps = {
+  name: string;
+  title?: string;
+  action?: TBillingCardAction;
+};
+
+function BillingCard(props: BillingCardProps) {
+  const { name, title = '', action } = props;
+
+  return (
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        backgroundColor: (theme) => theme.palette.background.default,
+      }}
+    >
+      <CardContent>
+        <Typography variant="subtitle2" sx={{ pb: 0.5 }}>
+          {name}
+        </Typography>
+
+        <Typography variant="h6" fontWeight="bold">
+          {title}
+        </Typography>
+      </CardContent>
+
+      <CardActions>
+        <Action action={action} />
+      </CardActions>
+    </Card>
+  );
+}
+
+function Action(props: { action?: TBillingCardAction }) {
+  const { action } = props;
+  if (!action) return <React.Fragment />;
+
+  const { text, type } = action;
+
+  if (type === 'link') {
+    if (action.src.startsWith('http')) {
+      return (
+        <Button
+          size="small"
+          href={action.src}
+          target="_blank"
+        >
+          {text}
+        </Button>
+      )
+    } else {
+      return (
+        <Button
+          size="small"
+          component={Link}
+          to={action.src}
+        >
+          {text}
+        </Button>
+      );
+    }
+  }
+
+  if (type === 'text') {
+    return (
+      <Typography variant="subtitle2" pb={1}>
+        {text}
+      </Typography>
+    );
+  }
+
+  return <React.Fragment />;
+}
 
 export default function UsageDataInformation() {
-  const usageData = useUsageData();
+  const formatMessage = useFormatMessage();
+  const billingAndUsageData = useBillingAndUsageData();
 
   return (
     <React.Fragment>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell component="td" scope="row">
-                Current plan
-              </TableCell>
+      <Card sx={{ mb: 3, p: 2 }}>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h6" fontWeight="bold">
+              {formatMessage('usageDataInformation.subscriptionPlan')}
+            </Typography>
 
-              <TableCell align="right" sx={{ fontWeight: 500 }}>{usageData.name}</TableCell>
-            </TableRow>
+            {billingAndUsageData?.subscription?.status && (
+              <Chip
+                label={capitalize(billingAndUsageData?.subscription?.status)}
+                color="success"
+              />
+            )}
+          </Box>
 
-            <TableRow>
-              <TableCell component="td" scope="row">
-                Total allowed task count
-              </TableCell>
+          <Divider sx={{ mb: 3 }} />
 
-              <TableCell align="right" sx={{ fontWeight: 500 }}>{usageData.allowedTaskCount}</TableCell>
-            </TableRow>
+          <Grid
+            container
+            item
+            xs={12}
+            spacing={1}
+            sx={{ mb: [2, 2, 8] }}
+            alignItems="stretch"
+          >
+            <Grid item xs={12} md={4}>
+              <BillingCard
+                name={formatMessage('usageDataInformation.monthlyQuota')}
+                title={billingAndUsageData?.subscription?.monthlyQuota.title}
+                action={billingAndUsageData?.subscription?.monthlyQuota.action}
+              />
+            </Grid>
 
-            <TableRow>
-              <TableCell component="td" scope="row">
-                Consumed task count
-              </TableCell>
+            <Grid item xs={12} md={4}>
+              <BillingCard
+                name={formatMessage('usageDataInformation.nextBillAmount')}
+                title={billingAndUsageData?.subscription?.nextBillAmount.title}
+                action={billingAndUsageData?.subscription?.nextBillAmount.action}
+              />
+            </Grid>
 
-              <TableCell align="right" sx={{ fontWeight: 500 }}>{usageData.consumedTaskCount}</TableCell>
-            </TableRow>
+            <Grid item xs={12} md={4}>
+              <BillingCard
+                name={formatMessage('usageDataInformation.nextBillDate')}
+                title={billingAndUsageData?.subscription?.nextBillDate.title}
+                action={billingAndUsageData?.subscription?.nextBillDate.action}
+              />
+            </Grid>
+          </Grid>
 
-            <TableRow sx={{ 'td': { border: 0 } }}>
-              <TableCell component="td" scope="row">
-                Next billing date
-              </TableCell>
+          <Box>
+            <Typography variant="h6" fontWeight="bold">
+              {formatMessage('usageDataInformation.yourUsage')}
+            </Typography>
 
-              <TableCell align="right" sx={{ fontWeight: 500 }}>{usageData.nextResetAt?.toLocaleString(DateTime.DATE_FULL)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: 'text.secondary', mt: 1 }}
+              >
+                {formatMessage('usageDataInformation.yourUsageDescription')}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ mt: 2 }} />
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ color: 'text.secondary', mt: 2, fontWeight: 500 }}
+              >
+                {formatMessage('usageDataInformation.yourUsageTasks')}
+              </Typography>
+
+              <Typography
+                variant="subtitle2"
+                sx={{ color: 'text.secondary', mt: 2, fontWeight: 500 }}
+              >
+                {billingAndUsageData?.usage.task}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ mt: 2 }} />
+          </Box>
+
+          <Button
+            component={Link}
+            to={URLS.SETTINGS_PLAN_UPGRADE}
+            size="small"
+            variant="contained"
+            sx={{ mt: 2, alignSelf: 'flex-end' }}
+          >
+            {formatMessage('usageDataInformation.upgrade')}
+          </Button>
+        </CardContent>
+      </Card>
     </React.Fragment>
   );
 }

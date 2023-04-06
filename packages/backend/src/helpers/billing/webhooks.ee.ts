@@ -1,42 +1,45 @@
-import Stripe from 'stripe';
-import PaymentPlan from '../../models/payment-plan.ee';
+import { IRequest } from '@automatisch/types';
+import Subscription from '../../models/subscription.ee';
 import Billing from './index.ee';
 
-const handleWebhooks = async (event: Stripe.Event) => {
-  const trackedWebhookTypes = [
-    'customer.subscription.created',
-    'customer.subscription.updated',
-    'customer.subscription.deleted',
-  ];
-
-  if (!trackedWebhookTypes.includes(event.type)) {
-    return;
-  }
-
-  await updatePaymentPlan(event);
+const handleSubscriptionCreated = async (request: IRequest) => {
+  await Subscription.query().insertAndFetch(formatSubscription(request));
 };
 
-const updatePaymentPlan = async (event: Stripe.Event) => {
-  const subscription = event.data.object as Stripe.Subscription;
-  const priceKey = subscription.items.data[0].plan.id;
-  const plan = Billing.plans.find((plan) => plan.price === priceKey);
+const handleSubscriptionPaymentSucceeded = async (request: IRequest) => {
+  const subscription = await Subscription.query()
+    .findOne({
+      paddle_subscription_id: request.body.subscription_id,
+    })
+    .throwIfNotFound();
 
-  const paymentPlan = await PaymentPlan.query().findOne({
-    stripe_customer_id: subscription.customer,
-  });
+  const remoteSubscription = await Billing.paddleClient.getSubscription(
+    Number(subscription.paddleSubscriptionId)
+  );
 
-  await paymentPlan.$query().patchAndFetch({
-    name: plan.name,
-    taskCount: plan.taskCount,
-    stripeSubscriptionId: subscription.id,
-  });
-
-  const user = await paymentPlan.$relatedQuery('user');
-  const usageData = await user.$relatedQuery('usageData');
-
-  await usageData.$query().patchAndFetch({
-    nextResetAt: new Date(subscription.current_period_end * 1000).toISOString(),
+  await subscription.$query().patch({
+    nextBillAmount: remoteSubscription.next_payment.amount.toFixed(2),
+    nextBillDate: remoteSubscription.next_payment.date,
+    lastBillDate: remoteSubscription.last_payment.date,
   });
 };
 
-export default handleWebhooks;
+const formatSubscription = (request: IRequest) => {
+  return {
+    userId: JSON.parse(request.body.passthrough).id,
+    paddleSubscriptionId: request.body.subscription_id,
+    paddlePlanId: request.body.subscription_plan_id,
+    cancelUrl: request.body.cancel_url,
+    updateUrl: request.body.update_url,
+    status: request.body.status,
+    nextBillDate: request.body.next_bill_date,
+    nextBillAmount: request.body.unit_price,
+  };
+};
+
+const webhooks = {
+  handleSubscriptionCreated,
+  handleSubscriptionPaymentSucceeded,
+};
+
+export default webhooks;

@@ -1,13 +1,17 @@
 import { QueryContext, ModelOptions } from 'objection';
+import { DateTime } from 'luxon';
+import appConfig from '../config/app';
 import Base from './base';
 import Connection from './connection';
 import Flow from './flow';
 import Step from './step';
 import Execution from './execution';
+import ExecutionStep from './execution-step';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import PaymentPlan from './payment-plan.ee';
 import UsageData from './usage-data.ee';
+import Subscription from './subscription.ee';
 
 class User extends Base {
   id!: string;
@@ -17,12 +21,14 @@ class User extends Base {
   role: string;
   resetPasswordToken: string;
   resetPasswordTokenSentAt: string;
+  trialExpiryDate: string;
   connections?: Connection[];
   flows?: Flow[];
   steps?: Step[];
   executions?: Execution[];
   paymentPlan?: PaymentPlan;
   usageData?: UsageData;
+  subscription?: Subscription;
 
   static tableName = 'users';
 
@@ -96,6 +102,14 @@ class User extends Base {
         to: 'users.id',
       },
     },
+    subscription: {
+      relation: Base.HasOneRelation,
+      modelClass: Subscription,
+      join: {
+        from: 'subscriptions.user_id',
+        to: 'users.id',
+      },
+    },
   });
 
   login(password: string) {
@@ -133,9 +147,17 @@ class User extends Base {
     this.password = await bcrypt.hash(this.password, 10);
   }
 
+  async startTrialPeriod() {
+    this.trialExpiryDate = DateTime.now().plus({ days: 30 }).toISODate();
+  }
+
   async $beforeInsert(queryContext: QueryContext) {
     await super.$beforeInsert(queryContext);
     await this.generateHash();
+
+    if (appConfig.isCloud) {
+      await this.startTrialPeriod();
+    }
   }
 
   async $beforeUpdate(opt: ModelOptions, queryContext: QueryContext) {

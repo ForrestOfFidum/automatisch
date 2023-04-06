@@ -145,7 +145,18 @@ export interface IFieldText {
   dependsOn?: string[];
 }
 
-export type IField = IFieldDropdown | IFieldText;
+export interface IFieldDynamic {
+  key: string;
+  label: string;
+  type: 'dynamic';
+  required?: boolean;
+  readOnly?: boolean;
+  description?: string;
+  value?: Record<string, unknown>[];
+  fields: (IFieldDropdown | IFieldText)[];
+}
+
+export type IField = IFieldDropdown | IFieldText | IFieldDynamic;
 
 export interface IAuthenticationStepField {
   name: string;
@@ -321,6 +332,50 @@ export type IGlobalVariable = {
   setActionItem?: (actionItem: IActionItem) => void;
 };
 
+export type TPaymentPlan = {
+  price: string;
+  name: string;
+  limit: string;
+  productId: string;
+}
+
+export type TSubscription = {
+  status: string;
+  monthlyQuota: {
+    title: string;
+    action: BillingCardAction;
+  };
+  nextBillDate: {
+    title: string;
+    action: BillingCardAction;
+  };
+  nextBillAmount: {
+    title: string;
+    action: BillingCardAction;
+  };
+}
+
+type TBillingCardAction = TBillingTextCardAction | TBillingLinkCardAction;
+
+type TBillingTextCardAction = {
+  type: 'text';
+  text: string;
+}
+
+type TBillingLinkCardAction = {
+  type: 'link';
+  text: string;
+  src: string;
+}
+
+type TInvoice = {
+  id: number
+  amount: number
+  currency: string
+  payout_date: string
+  receipt_url: string
+}
+
 declare module 'axios' {
   interface AxiosResponse {
     httpError?: IJSONObject;
@@ -335,4 +390,3 @@ export interface IRequest extends Request {
   rawBody?: Buffer;
   currentUser?: IUser;
 }
-
