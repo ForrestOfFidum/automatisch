@@ -7,7 +7,7 @@ import Chip from '@mui/material/Chip';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { DateTime } from 'luxon';
 
-import type { IFlow } from '@automatisch/types';
+import type { IFlow } from 'types';
 import FlowAppIcons from 'components/FlowAppIcons';
 import FlowContextMenu from 'components/FlowContextMenu';
 import useFormatMessage from 'hooks/useFormatMessage';
@@ -17,6 +17,35 @@ import { Apps, CardContent, ContextMenu, Title, Typography } from './style';
 type FlowRowProps = {
   flow: IFlow;
 };
+
+function getFlowStatusTranslationKey(status: IFlow['status']): string {
+  if (status === 'published') {
+    return 'flow.published';
+  } else if (status === 'paused') {
+    return 'flow.paused';
+  }
+
+  return 'flow.draft';
+}
+
+function getFlowStatusColor(
+  status: IFlow['status']
+):
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'error'
+  | 'info'
+  | 'success'
+  | 'warning' {
+  if (status === 'published') {
+    return 'success';
+  } else if (status === 'paused') {
+    return 'error';
+  }
+
+  return 'info';
+}
 
 export default function FlowRow(props: FlowRowProps): React.ReactElement {
   const formatMessage = useFormatMessage();
@@ -36,16 +65,20 @@ export default function FlowRow(props: FlowRowProps): React.ReactElement {
     setAnchorEl(contextButtonRef.current);
   };
 
-  const createdAt = DateTime.fromMillis(parseInt(flow.createdAt, 10));
-  const updatedAt = DateTime.fromMillis(parseInt(flow.updatedAt, 10));
+  const createdAt = DateTime.fromMillis(parseInt(flow.createdAt as string, 10));
+  const updatedAt = DateTime.fromMillis(parseInt(flow.updatedAt as string, 10));
   const isUpdated = updatedAt > createdAt;
   const relativeCreatedAt = createdAt.toRelative();
   const relativeUpdatedAt = updatedAt.toRelative();
 
   return (
     <>
-      <Card sx={{ mb: 1 }}>
-        <CardActionArea component={Link} to={URLS.FLOW(flow.id)}>
+      <Card sx={{ mb: 1 }} data-test="flow-row">
+        <CardActionArea
+          component={Link}
+          to={URLS.FLOW(flow.id)}
+          data-test="card-action-area"
+        >
           <CardContent>
             <Apps direction="row" gap={1} sx={{ gridArea: 'apps' }}>
               <FlowAppIcons steps={flow.steps} />
@@ -76,11 +109,9 @@ export default function FlowRow(props: FlowRowProps): React.ReactElement {
             <ContextMenu>
               <Chip
                 size="small"
-                color={flow?.active ? 'success' : 'info'}
+                color={getFlowStatusColor(flow?.status)}
                 variant={flow?.active ? 'filled' : 'outlined'}
-                label={formatMessage(
-                  flow?.active ? 'flow.published' : 'flow.draft'
-                )}
+                label={formatMessage(getFlowStatusTranslationKey(flow?.status))}
               />
 
               <IconButton

@@ -19,6 +19,7 @@ type DrawerLink = {
   Icon: React.ElementType;
   primary: string;
   to: string;
+  target?: '_blank';
   badgeContent?: React.ReactNode;
   dataTest?: string;
 };
@@ -68,19 +69,23 @@ export default function Drawer(props: DrawerProps): React.ReactElement {
       </div>
 
       <List sx={{ py: 0, mt: 3 }}>
-        {bottomLinks.map(({ Icon, badgeContent, primary, to }, index) => (
-          <ListItemLink
-            key={`${to}-${index}`}
-            icon={
-              <Badge badgeContent={badgeContent} color="secondary" max={99}>
-                <Icon htmlColor={theme.palette.primary.main} />
-              </Badge>
-            }
-            primary={formatMessage(primary)}
-            to={to}
-            onClick={closeOnClick}
-          />
-        ))}
+        {bottomLinks.map(
+          ({ Icon, badgeContent, primary, to, dataTest, target }, index) => (
+            <ListItemLink
+              key={`${to}-${index}`}
+              icon={
+                <Badge badgeContent={badgeContent} color="secondary" max={99}>
+                  <Icon htmlColor={theme.palette.primary.main} />
+                </Badge>
+              }
+              primary={primary}
+              to={to}
+              onClick={closeOnClick}
+              target={target}
+              data-test={dataTest}
+            />
+          )
+        )}
       </List>
     </BaseDrawer>
   );

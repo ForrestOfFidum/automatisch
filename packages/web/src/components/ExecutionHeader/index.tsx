@@ -4,7 +4,9 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import type { IExecution } from '@automatisch/types';
+import type { IExecution } from 'types';
+
+import useFormatMessage from 'hooks/useFormatMessage';
 
 type ExecutionHeaderProps = {
   execution: IExecution;
@@ -19,24 +21,33 @@ function ExecutionName(props: Pick<IExecution['flow'], 'name'>) {
 }
 
 function ExecutionId(props: Pick<IExecution, 'id'>) {
+  const formatMessage = useFormatMessage();
+
+  const id = (
+    <Typography variant="body1" component="span">
+      {props.id}
+    </Typography>
+  );
+
   return (
     <Box sx={{ display: 'flex' }}>
       <Typography variant="body2">
-        Execution ID:{' '}
-        <Typography variant="body1" component="span">
-          {props.id}
-        </Typography>
+        {formatMessage('execution.id', { id })}
       </Typography>
     </Box>
   );
 }
 
 function ExecutionDate(props: Pick<IExecution, 'createdAt'>) {
-  const createdAt = DateTime.fromMillis(parseInt(props.createdAt, 10));
+  const createdAt = DateTime.fromMillis(
+    parseInt(props.createdAt as string, 10)
+  );
   const relativeCreatedAt = createdAt.toRelative();
 
   return (
-    <Tooltip title={createdAt.toLocaleString(DateTime.DATE_MED)}>
+    <Tooltip
+      title={createdAt.toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS)}
+    >
       <Typography variant="body1" gutterBottom>
         {relativeCreatedAt}
       </Typography>

@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM node:16-alpine
+FROM node:18-alpine
 WORKDIR /automatisch
 
 RUN \
   apk --no-cache add --virtual build-dependencies python3 build-base && \
-  yarn global add @automatisch/cli@0.5.0 --network-timeout 1000000 && \
+  yarn global add @automatisch/cli@0.10.0 --network-timeout 1000000 && \
   rm -rf /usr/local/share/.cache/ && \
   apk del build-dependencies
 

@@ -8,7 +8,7 @@ import * as URLS from 'config/urls';
 import AppFlowRow from 'components/FlowRow';
 import NoResultFound from 'components/NoResultFound';
 import useFormatMessage from 'hooks/useFormatMessage';
-import type { IFlow } from '@automatisch/types';
+import type { IFlow } from 'types';
 
 type AppFlowsProps = {
   appKey: string;
@@ -45,6 +45,7 @@ export default function AppFlows(props: AppFlowsProps): React.ReactElement {
       <NoResultFound
         to={URLS.CREATE_FLOW_WITH_APP_AND_CONNECTION(appKey, connectionId)}
         text={formatMessage('app.noFlows')}
+        data-test="flows-no-results"
       />
     );
   }

@@ -1,4 +1,4 @@
-import type { IAuthenticationStep, IJSONObject } from '@automatisch/types';
+import type { IAuthenticationStep, IJSONObject } from 'types';
 import apolloClient from 'graphql/client';
 import MUTATIONS from 'graphql/mutations';
 
@@ -25,9 +25,16 @@ const processMutation = async (
 };
 
 const parseUrlSearchParams = (event: any) => {
-  const searchParams = new URLSearchParams(event.data.payload);
+  const searchParams = new URLSearchParams(event.data.payload.search);
+  const hashParams = new URLSearchParams(event.data.payload.hash.substring(1));
 
-  return getObjectOfEntries(searchParams.entries());
+  const searchParamsObject = getObjectOfEntries(searchParams.entries());
+  const hashParamsObject = getObjectOfEntries(hashParams.entries());
+
+  return {
+    ...hashParamsObject,
+    ...searchParamsObject,
+  };
 };
 
 function getObjectOfEntries(iterator: any) {
@@ -57,7 +64,9 @@ const processOpenWithPopup = (
     popup?.focus();
 
     const closeCheckIntervalId = setInterval(() => {
-      if (popup.closed) {
+      if (!popup) return;
+
+      if (popup?.closed) {
         clearInterval(closeCheckIntervalId);
         reject({ message: 'Error occured while verifying credentials!' });
       }

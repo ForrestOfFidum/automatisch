@@ -4,9 +4,9 @@ import ThemeProvider from 'components/ThemeProvider';
 import IntlProvider from 'components/IntlProvider';
 import ApolloProvider from 'components/ApolloProvider';
 import SnackbarProvider from 'components/SnackbarProvider';
+import MetadataProvider from 'components/MetadataProvider';
 import { AuthenticationProvider } from 'contexts/Authentication';
 import { AutomatischInfoProvider } from 'contexts/AutomatischInfo';
-import { PaddleProvider } from 'contexts/Paddle.ee';
 import Router from 'components/Router';
 import LiveChat from 'components/LiveChat/index.ee';
 import routes from 'routes';
@@ -19,13 +19,13 @@ ReactDOM.render(
         <ApolloProvider>
           <AutomatischInfoProvider>
             <IntlProvider>
-              <PaddleProvider>
-                <ThemeProvider>
+              <ThemeProvider>
+                <MetadataProvider>
                   {routes}
 
                   <LiveChat />
-                </ThemeProvider>
-              </PaddleProvider>
+                </MetadataProvider>
+              </ThemeProvider>
             </IntlProvider>
           </AutomatischInfoProvider>
         </ApolloProvider>

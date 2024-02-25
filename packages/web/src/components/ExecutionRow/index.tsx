@@ -5,7 +5,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import Chip from '@mui/material/Chip';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { DateTime } from 'luxon';
-import type { IExecution } from '@automatisch/types';
+import type { IExecution } from 'types';
 
 import * as URLS from 'config/urls';
 import useFormatMessage from 'hooks/useFormatMessage';
@@ -23,7 +23,9 @@ export default function ExecutionRow(
   const { execution } = props;
   const { flow } = execution;
 
-  const createdAt = DateTime.fromMillis(parseInt(execution.createdAt, 10));
+  const createdAt = DateTime.fromMillis(
+    parseInt(execution.createdAt as string, 10)
+  );
   const relativeCreatedAt = createdAt.toRelative();
 
   return (
@@ -41,7 +43,7 @@ export default function ExecutionRow(
               </Typography>
 
               <Typography variant="caption" noWrap>
-                {formatMessage('execution.executedAt', {
+                {formatMessage('execution.createdAt', {
                   datetime: relativeCreatedAt,
                 })}
               </Typography>

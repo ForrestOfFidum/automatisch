@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useQuery } from '@apollo/client';
 
-import type { IConnection } from '@automatisch/types';
+import type { IConnection } from 'types';
 import { GET_APP_CONNECTIONS } from 'graphql/queries/get-app-connections';
 import AppConnectionRow from 'components/AppConnectionRow';
 import NoResultFound from 'components/NoResultFound';
@@ -29,6 +29,7 @@ export default function AppConnections(
       <NoResultFound
         to={URLS.APP_ADD_CONNECTION(appKey)}
         text={formatMessage('app.noConnections')}
+        data-test="connections-no-results"
       />
     );
   }
